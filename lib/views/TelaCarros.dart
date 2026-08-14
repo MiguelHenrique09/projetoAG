@@ -18,14 +18,14 @@ import 'package:projeto/model/classes/carro.dart';
 //   }
 // }
 
-class Tela1 extends StatefulWidget {
-  const Tela1({super.key, required this.title});
+class TelaCarros extends StatefulWidget {
+  const TelaCarros({super.key, required this.title});
   final String title;
   @override
-  State<Tela1> createState() => _Tela1State();
+  State<TelaCarros> createState() => _TelaCarrosState();
 }
 
-class _Tela1State extends State<Tela1> {
+class _TelaCarrosState extends State<TelaCarros> {
   TextEditingController tecID = new TextEditingController();
   TextEditingController tecNome = new TextEditingController();
   TextEditingController tecPreco = new TextEditingController();
@@ -85,7 +85,7 @@ class _Tela1State extends State<Tela1> {
     // Escreva o método correspondente no seu ListaCarroController
     await ListaCarroController.deletarCarro(id);
     print('Carro $id deletado!');
-    //await carregarDados();
+    await carregarDados();
   }
 
   /**
@@ -145,69 +145,66 @@ class _Tela1State extends State<Tela1> {
   /**
    * chamada à outra tela(view) para iniciar a edição visual do dado
    */
-  void prepararEdicao(Carro carro) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Editar Dado"),
-        content: Padding(
-          padding: EdgeInsetsGeometry.all(10),
-          child: Container(
-            height: 300,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                const Text("ID do carro"),
-                TextField(
-                  //controller: tecID,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                const SizedBox(height: 12),
-                const Text("Nome do carro"),
-                TextField(
-                  //    controller: tecNome
-                ),
-                const SizedBox(height: 12),
-                const Text("Preço do carro"),
-                TextField(
-                  //controller: tecPreco,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              //função de chamada ao controlador para atualização do produto
-              //atualizarDado(produto.id);
-              Navigator.pop(context);
-            },
-            child: const Text('Atualizar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-        ],
-      ),
-    );
-    // setState(() {
-    //   tecID.text = produto.id.toString();
-    //   tecNome.text = produto.nome;
-    //   tecPreco.text = produto.preco.toString();
-    // });
-  }
+  // void prepararEdicao(Carro carro) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text("Editar Dado"),
+  //       content: Padding(
+  //         padding: EdgeInsetsGeometry.all(10),
+  //         child: Container(
+  //           height: 300,
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             mainAxisAlignment: MainAxisAlignment.start,
+  //             children: [
+  //               const SizedBox(height: 12),
+  //               const Text("Marca do carro"),
+  //               TextField(
+  //                 controller: tecMarca,
+  //                 keyboardType: TextInputType.text,
+  //               ),
+  //               const SizedBox(height: 12),
+  //               const Text("Nome do carro"),
+  //               TextField(controller: tecNome),
+  //               const SizedBox(height: 12),
+  //               const Text("Preço do carro"),
+  //               TextField(
+  //                 controller: tecPreco,
+  //                 keyboardType: const TextInputType.numberWithOptions(
+  //                   decimal: true,
+  //                 ),
+  //                 inputFormatters: [
+  //                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+  //                 ],
+  //               ),
+  //               const SizedBox(height: 12),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             //função de chamada ao controlador para atualização do produto
+  //             //atualizarDado(produto.id);
+  //             Navigator.pop(context);
+  //           },
+  //           child: const Text('Atualizar'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancelar'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  //   setState(() {
+  //     tecID.text = carro.id.toString();
+  //     tecNome.text = carro.nome;
+  //     tecPreco.text = carro.preco.toString();
+  //   });
+  // }
 
   /**
    * chamad a outra tela(view) para exibição detalhada de dados
@@ -262,11 +259,17 @@ class _Tela1State extends State<Tela1> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 12),
-                    const Text("ID do carro"),
+                    const Text("Marca do carro"),
                     TextField(
                       controller: tecID,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text("Ano de fabricação do carro"),
+                    TextField(
+                      controller: tecAnoFabricacao,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 12),
                     const Text("Nome do carro"),
@@ -394,26 +397,26 @@ class _Tela1State extends State<Tela1> {
                                 onTap: () =>
                                     visualizarDado(carro), // Toque rápido
                                 //evento do click longo para edição
-                                onLongPress: () =>
-                                    prepararEdicao(carro), // Toque longo
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // IconButton(
-                                    //   icon: carro.favorito
-                                    //       ? const Icon(
-                                    //           Icons.favorite,
-                                    //           color: Colors.red,
-                                    //         )
-                                    //       : const Icon(
-                                    //           Icons.favorite,
-                                    //           color: Colors.grey,
-                                    //         ),
-                                    //   onPressed: () => favoritarDado(carro),
-                                    //   tooltip: 'Editar',
-                                    // ),
-                                  ],
-                                ),
+                                // onLongPress: () =>
+                                //     prepararEdicao(carro), // Toque longo
+                                // trailing: Row(
+                                //   mainAxisSize: MainAxisSize.min,
+                                //   children: [
+                                //     // IconButton(
+                                //     //   icon: carro.favorito
+                                //     //       ? const Icon(
+                                //     //           Icons.favorite,
+                                //     //           color: Colors.red,
+                                //     //         )
+                                //     //       : const Icon(
+                                //     //           Icons.favorite,
+                                //     //           color: Colors.grey,
+                                //     //         ),
+                                //     //   onPressed: () => favoritarDado(carro),
+                                //     //   tooltip: 'Editar',
+                                //     // ),
+                                //   ],
+                                // ),
                               ),
                             ),
                           );

@@ -23,9 +23,9 @@ class AuthController {
     //json.encode(auth.toMap());
 
     //simula o retorno da api
-    if (auth.usuario == '123456' && auth.senha == '123456') {
+    if (auth.usuario == 'projeto' && auth.senha == 'projeto') {
       Auth authApiRetorno = Auth(
-        usuario: "fera",
+        usuario: "Projeto",
         senha: '',
         token_autorizacao: "çalskdfsoiu23j́bdçvocuiyvhkjqerb-iudfhnsbdkljqghoi",
       );
