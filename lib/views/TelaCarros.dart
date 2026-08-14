@@ -60,11 +60,16 @@ class _TelaCarrosState extends State<TelaCarros> {
    * Chamada ao controlador para inserção de dados
    */
   void inserirDado() async {
-    int id = int.parse(tecID.text);
+    // Gera um novo ID automaticamente (maior ID atual + 1, ou 1 se lista vazia)
+    int id = _carros.isEmpty
+        ? 1
+        : _carros.map((c) => c.id).reduce((a, b) => a > b ? a : b) + 1;
+
     String nome = tecNome.text;
     double preco = double.parse(tecPreco.text);
     String marca = tecMarca.text;
     int anoFabricacao = int.parse(tecAnoFabricacao.text);
+
     await ListaCarroController.inserirCarro(
       id,
       nome,
@@ -87,124 +92,6 @@ class _TelaCarrosState extends State<TelaCarros> {
     print('Carro $id deletado!');
     await carregarDados();
   }
-
-  /**
-   * Chamada ao controlador para deleção de dados
-   */
-  // void favoritarDado(Carro p) async {
-  //   await ListaCarroController.favoritar(p);
-  //   print('Carro ${p.nome} favoritado!');
-  //   await carregarDados();
-  // }
-
-  /**
-   * chamad a outra tela(view) para exibição detalhada de dados
-   */
-  // void preparaDelecao(Carro carro) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text("Deletar Dado"),
-  //       content: Text('Tem certeza que deseja deletar o carro: ${carro.nome}?'),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: (){
-  //             //função de chamada ao controlador para deleção do carro
-  //             deletarDado(carro.id);
-  //             Navigator.pop(context);
-  //
-  //             //feedback ao usuário de deleção
-  //             ScaffoldMessenger.of(context).showSnackBar(
-  //               SnackBar(
-  //                 content: const Text('Carro deletado com sucesso!'),
-  //                 backgroundColor: Colors.red,
-  //                 behavior: SnackBarBehavior.floating, // Faz o snackbar flutuar (cantos arredondados)
-  //                 duration: const Duration(seconds: 3), // Tempo em tela
-  //                 action: SnackBarAction(
-  //                   label: 'DESFAZER',
-  //                   textColor: Colors.white,
-  //                   onPressed: () {
-  //                     // Código para desfazer a ação aqui
-  //                     print('Ação desfeita!');
-  //                   },
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //           child: const Text('Deletar'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: const Text('Cancelar'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  /**
-   * chamada à outra tela(view) para iniciar a edição visual do dado
-   */
-  // void prepararEdicao(Carro carro) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text("Editar Dado"),
-  //       content: Padding(
-  //         padding: EdgeInsetsGeometry.all(10),
-  //         child: Container(
-  //           height: 300,
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             mainAxisAlignment: MainAxisAlignment.start,
-  //             children: [
-  //               const SizedBox(height: 12),
-  //               const Text("Marca do carro"),
-  //               TextField(
-  //                 controller: tecMarca,
-  //                 keyboardType: TextInputType.text,
-  //               ),
-  //               const SizedBox(height: 12),
-  //               const Text("Nome do carro"),
-  //               TextField(controller: tecNome),
-  //               const SizedBox(height: 12),
-  //               const Text("Preço do carro"),
-  //               TextField(
-  //                 controller: tecPreco,
-  //                 keyboardType: const TextInputType.numberWithOptions(
-  //                   decimal: true,
-  //                 ),
-  //                 inputFormatters: [
-  //                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-  //                 ],
-  //               ),
-  //               const SizedBox(height: 12),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () {
-  //             //função de chamada ao controlador para atualização do produto
-  //             //atualizarDado(produto.id);
-  //             Navigator.pop(context);
-  //           },
-  //           child: const Text('Atualizar'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: const Text('Cancelar'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  //   setState(() {
-  //     tecID.text = carro.id.toString();
-  //     tecNome.text = carro.nome;
-  //     tecPreco.text = carro.preco.toString();
-  //   });
-  // }
 
   /**
    * chamad a outra tela(view) para exibição detalhada de dados
@@ -232,9 +119,10 @@ class _TelaCarrosState extends State<TelaCarros> {
    */
   void limparCampos() {
     setState(() {
-      tecID.text = "";
+      tecAnoFabricacao.text = "";
       tecNome.text = "";
       tecPreco.text = "";
+      tecMarca.text = "";
     });
   }
 
