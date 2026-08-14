@@ -261,7 +261,7 @@ class _TelaCarrosState extends State<TelaCarros> {
                     const SizedBox(height: 12),
                     const Text("Marca do carro"),
                     TextField(
-                      controller: tecID,
+                      controller: tecMarca,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                     ),
