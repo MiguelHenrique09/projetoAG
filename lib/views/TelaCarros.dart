@@ -21,10 +21,6 @@ class _TelaCarrosState extends State<TelaCarros> {
 
   List<Carro> _carros = [];
 
-  final Color corPrincipal = Color(0xFF1565C0);
-  final Color corSecundaria = Color(0xFF0D47A1);
-  final Color corFundo = Color(0xFFF4F6F8);
-
   @override
   void initState() {
     super.initState();
@@ -58,7 +54,7 @@ class _TelaCarrosState extends State<TelaCarros> {
         tecPreco.text.trim().isEmpty ||
         tecMarca.text.trim().isEmpty ||
         tecAnoFabricacao.text.trim().isEmpty) {
-      mostrarMensagem("Preencha todos os campos.", Colors.orange);
+      mostrarMensagem("Preencha todos os campos.");
       return;
     }
 
@@ -66,13 +62,13 @@ class _TelaCarrosState extends State<TelaCarros> {
 
     final int? ano = int.tryParse(tecAnoFabricacao.text);
 
-    if (preco == null || preco <= 0) {
-      mostrarMensagem("Digite um preço válido.", Colors.orange);
+    if (preco == null || preco < 0) {
+      mostrarMensagem("Digite um preço válido");
       return;
     }
 
-    if (ano == null || ano < 1900 || ano > DateTime.now().year + 1) {
-      mostrarMensagem("Digite um ano de fabricação válido.", Colors.orange);
+    if (ano == null || ano < 1000) {
+      mostrarMensagem("Digite um ano de fabricação válido");
       return;
     }
 
@@ -86,12 +82,18 @@ class _TelaCarrosState extends State<TelaCarros> {
     try {
       await ListaCarroController.inserirCarro(id, nome, preco, marca, ano);
 
+      // Recarrega a lista para o novo carro aparecer na tela
       await carregarDados();
-      limparCampos();
 
-      mostrarMensagem("Carro cadastrado com sucesso!", Colors.green);
+      // Limpa os campos após o cadastro
+      tecNome.clear();
+      tecPreco.clear();
+      tecMarca.clear();
+      tecAnoFabricacao.clear();
+
+      mostrarMensagem("Carro cadastrado");
     } catch (e) {
-      mostrarMensagem("Erro ao cadastrar carro.", Colors.red);
+      mostrarMensagem("Erro ao cadastrar");
     }
   }
 
@@ -99,11 +101,12 @@ class _TelaCarrosState extends State<TelaCarros> {
     try {
       await ListaCarroController.deletarCarro(id);
 
-      await carregarDados();
-
-      mostrarMensagem("Carro removido com sucesso!", Colors.green);
+      mostrarMensagem("Carro removido com sucesso!");
     } catch (e) {
-      mostrarMensagem("Erro ao remover carro.", Colors.red);
+      mostrarMensagem("Erro ao remover carro.");
+
+      // Se der erro no backend, recarrega a lista pra desfazer a remoção visual
+      await carregarDados();
     }
   }
 
@@ -112,28 +115,11 @@ class _TelaCarrosState extends State<TelaCarros> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 75,
-                  height: 75,
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(21, 101, 192, 0.10),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.directions_car_rounded,
-                    size: 40,
-                    color: corPrincipal,
-                  ),
-                ),
-
                 const SizedBox(height: 16),
 
                 Text(
@@ -147,22 +133,11 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                 const SizedBox(height: 20),
 
-                _informacaoCarro(
-                  Icons.confirmation_number_outlined,
-                  "ID",
-                  carro.id.toString(),
-                ),
+                _informacaoCarro("ID", carro.id.toString()),
 
-                _informacaoCarro(Icons.business_outlined, "Marca", carro.marca),
+                _informacaoCarro("Ano", carro.anoFabricacao.toString()),
 
                 _informacaoCarro(
-                  Icons.calendar_today_outlined,
-                  "Ano",
-                  carro.anoFabricacao.toString(),
-                ),
-
-                _informacaoCarro(
-                  Icons.attach_money_rounded,
                   "Preço",
                   "R\$ ${carro.preco.toStringAsFixed(2)}",
                 ),
@@ -174,7 +149,7 @@ class _TelaCarrosState extends State<TelaCarros> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: corPrincipal,
+                      backgroundColor: Color(0xFF1565C0),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -195,28 +170,22 @@ class _TelaCarrosState extends State<TelaCarros> {
     );
   }
 
-  Widget _informacaoCarro(IconData icone, String titulo, String valor) {
+  Widget _informacaoCarro(String titulo, String valor) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
+
       child: Row(
         children: [
-          Icon(icone, color: corPrincipal, size: 22),
-
-          const SizedBox(width: 12),
-
-          Text("$titulo:", style: const TextStyle(fontWeight: FontWeight.w600)),
-
-          const Spacer(),
+          Text(
+            "$titulo : ",
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
 
           Flexible(
             child: Text(
               valor,
-              textAlign: TextAlign.right,
+
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -225,33 +194,18 @@ class _TelaCarrosState extends State<TelaCarros> {
     );
   }
 
-  void limparCampos() {
-    setState(() {
-      tecAnoFabricacao.clear();
-      tecNome.clear();
-      tecPreco.clear();
-      tecMarca.clear();
-    });
-  }
-
-  void mostrarMensagem(String mensagem, Color cor) {
+  void mostrarMensagem(String mensagem) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              cor == Colors.green ? Icons.check_circle : Icons.warning_rounded,
-              color: Colors.white,
-            ),
-
             const SizedBox(width: 10),
 
             Expanded(child: Text(mensagem)),
           ],
         ),
-        backgroundColor: cor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
@@ -259,58 +213,17 @@ class _TelaCarrosState extends State<TelaCarros> {
     );
   }
 
-  InputDecoration estiloCampo({
-    required String label,
-    required IconData icone,
-    String? hint,
-  }) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-
-      prefixIcon: Icon(icone, color: corPrincipal),
-
-      filled: true,
-      fillColor: Colors.grey.shade50,
-
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: corPrincipal, width: 2),
-      ),
-
-      floatingLabelStyle: TextStyle(
-        color: corPrincipal,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: corFundo,
+      backgroundColor: Colors.white,
 
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: corSecundaria,
+        backgroundColor: Color(0xFF0D47A1),
         foregroundColor: Colors.white,
 
         title: Row(
           children: [
-            const Icon(Icons.directions_car_rounded, size: 28),
-
             const SizedBox(width: 10),
 
             Text(
@@ -324,55 +237,12 @@ class _TelaCarrosState extends State<TelaCarros> {
       body: SafeArea(
         child: Column(
           children: [
-            // CABEÇALHO
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-              decoration: BoxDecoration(
-                color: corSecundaria,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Cadastro de veículos",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Cadastre e gerencie seus carros",
-                    style: TextStyle(
-                      color: Color.fromRGBO(255, 255, 255, 0.80),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // CONTEÚDO
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // CARD DE CADASTRO
-
                     Card(
-                      elevation: 3,
-
                       shadowColor: Color.fromRGBO(0, 0, 0, 0.12),
 
                       shape: RoundedRectangleBorder(
@@ -388,28 +258,13 @@ class _TelaCarrosState extends State<TelaCarros> {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-
-                                  decoration: BoxDecoration(
-                                    color: Color.fromRGBO(21, 101, 192, 0.10),
-
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-
-                                  child: Icon(
-                                    Icons.add_circle_outline,
-                                    color: corPrincipal,
-                                  ),
-                                ),
-
                                 const SizedBox(width: 12),
 
                                 const Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Novo carro",
+                                      "Insira os dados do novo carro",
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -432,107 +287,81 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                             const SizedBox(height: 22),
 
-                            // MARCA
                             TextField(
                               controller: tecMarca,
                               keyboardType: TextInputType.text,
                               textInputAction: TextInputAction.next,
-
-                              decoration: estiloCampo(
-                                label: "Marca",
-                                hint: "Ex: Toyota",
-                                icone: Icons.business_outlined,
+                              decoration: InputDecoration(
+                                labelText: "Marca",
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
                               ),
                             ),
 
                             const SizedBox(height: 14),
 
-                            // NOME
                             TextField(
                               controller: tecNome,
                               keyboardType: TextInputType.text,
                               textInputAction: TextInputAction.next,
-
-                              decoration: estiloCampo(
-                                label: "Nome do carro",
-                                hint: "Ex: Corolla",
-                                icone: Icons.directions_car_outlined,
+                              decoration: InputDecoration(
+                                labelText: "Nome do carro",
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
                               ),
                             ),
 
                             const SizedBox(height: 14),
-
-                            // ANO E PREÇO
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: tecAnoFabricacao,
-
-                                    keyboardType: TextInputType.number,
-
-                                    textInputAction: TextInputAction.next,
-
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-
-                                      LengthLimitingTextInputFormatter(4),
-                                    ],
-
-                                    decoration: estiloCampo(
-                                      label: "Ano",
-                                      hint: "2024",
-                                      icone: Icons.calendar_today_outlined,
-                                    ),
-                                  ),
+                            TextField(
+                              controller: tecAnoFabricacao,
+                              keyboardType: TextInputType.text,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                labelText: "Ano de fabricação",
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
                                 ),
-
-                                const SizedBox(width: 12),
-
-                                Expanded(
-                                  child: TextField(
-                                    controller: tecPreco,
-
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                        ),
-
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'^\d*[,.]?\d{0,2}'),
-                                      ),
-                                    ],
-
-                                    decoration: estiloCampo(
-                                      label: "Preço",
-                                      hint: "0,00",
-                                      icone: Icons.attach_money_rounded,
-                                    ),
-                                  ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            TextField(
+                              controller: tecPreco,
+                              keyboardType: TextInputType.text,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(
+                                labelText: "Preço",
+                                filled: true,
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
                                 ),
-                              ],
+                              ),
                             ),
 
-                            const SizedBox(height: 20),
-
-                            // BOTÕES
                             Row(
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: inserirDado,
 
-                                    icon: const Icon(Icons.add),
-
                                     label: const Text("Cadastrar carro"),
 
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: corPrincipal,
+                                      backgroundColor: Color(0xFF1565C0),
 
                                       foregroundColor: Colors.white,
-
-                                      elevation: 0,
 
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 16,
@@ -546,29 +375,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                                 ),
 
                                 const SizedBox(width: 10),
-
-                                OutlinedButton(
-                                  onPressed: limparCampos,
-
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: corPrincipal,
-
-                                    side: BorderSide(color: corPrincipal),
-
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                      horizontal: 16,
-                                    ),
-
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                  ),
-
-                                  child: const Icon(
-                                    Icons.cleaning_services_outlined,
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -578,7 +384,6 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                     const SizedBox(height: 24),
 
-                    // TÍTULO DA LISTA
                     Row(
                       children: [
                         const Text(
@@ -588,68 +393,15 @@ class _TelaCarrosState extends State<TelaCarros> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
-                        const Spacer(),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-
-                          decoration: BoxDecoration(
-                            color: Color.fromRGBO(21, 101, 192, 0.10),
-
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-
-                          child: Text(
-                            "${_carros.length}",
-                            style: TextStyle(
-                              color: corPrincipal,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
 
                     const SizedBox(height: 12),
 
-                    // LISTA VAZIA
                     if (_carros.isEmpty)
                       Container(
-                        width: double.infinity,
-
-                        padding: const EdgeInsets.all(35),
-
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-
-                          borderRadius: BorderRadius.circular(20),
-
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-
                         child: Column(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(20),
-
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                shape: BoxShape.circle,
-                              ),
-
-                              child: Icon(
-                                Icons.directions_car_outlined,
-                                size: 45,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-
                             const Text(
                               "Nenhum carro cadastrado",
                               style: TextStyle(
@@ -657,30 +409,14 @@ class _TelaCarrosState extends State<TelaCarros> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-
-                            const SizedBox(height: 6),
-
-                            Text(
-                              "Cadastre seu primeiro veículo usando o formulário acima.",
-                              textAlign: TextAlign.center,
-
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13,
-                              ),
-                            ),
                           ],
                         ),
                       )
-                    // LISTA COM CARROS
                     else
                       ListView.builder(
-                        shrinkWrap: true,
-
-                        physics: const NeverScrollableScrollPhysics(),
-
                         itemCount: _carros.length,
-
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
                           final carro = _carros[index];
 
@@ -689,11 +425,18 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                             direction: DismissDirection.startToEnd,
 
+                            onDismissed: (direction) {
+                              setState(() {
+                                _carros.removeAt(index);
+                              });
+                              deletarDado(carro.id);
+                            },
+
                             background: Container(
                               margin: const EdgeInsets.only(bottom: 10),
 
                               decoration: BoxDecoration(
-                                color: Colors.red.shade600,
+                                color: Colors.red,
 
                                 borderRadius: BorderRadius.circular(18),
                               ),
@@ -725,63 +468,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                               ),
                             ),
 
-                            confirmDismiss: (direction) async {
-                              return await showDialog<bool>(
-                                context: context,
-
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-
-                                    title: const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.warning_amber_rounded,
-                                          color: Colors.red,
-                                        ),
-
-                                        SizedBox(width: 10),
-
-                                        Text("Excluir carro"),
-                                      ],
-                                    ),
-
-                                    content: Text(
-                                      'Deseja realmente excluir o carro "${carro.nome}"?',
-                                    ),
-
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-
-                                        child: const Text("Cancelar"),
-                                      ),
-
-                                      ElevatedButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-
-                                          foregroundColor: Colors.white,
-                                        ),
-
-                                        child: const Text("Excluir"),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-
-                            onDismissed: (direction) {
-                              deletarDado(carro.id);
-                            },
-
                             child: Card(
                               elevation: 2,
 
@@ -803,35 +489,8 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                                   child: Row(
                                     children: [
-                                      // ÍCONE
-
-                                      Container(
-                                        width: 58,
-                                        height: 58,
-
-                                        decoration: BoxDecoration(
-                                          color: Color.fromRGBO(
-                                            21,
-                                            101,
-                                            192,
-                                            0.10,
-                                          ),
-
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-
-                                        child: Icon(
-                                          Icons.directions_car_rounded,
-                                          color: corPrincipal,
-                                          size: 30,
-                                        ),
-                                      ),
-
                                       const SizedBox(width: 14),
 
-                                      // INFORMAÇÕES
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -847,16 +506,8 @@ class _TelaCarrosState extends State<TelaCarros> {
                                               ),
                                             ),
 
-                                            const SizedBox(height: 5),
-
                                             Row(
                                               children: [
-                                                Icon(
-                                                  Icons.business_outlined,
-                                                  size: 14,
-                                                  color: Colors.grey.shade600,
-                                                ),
-
                                                 const SizedBox(width: 4),
 
                                                 Flexible(
@@ -875,12 +526,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                                                 ),
 
                                                 const SizedBox(width: 10),
-
-                                                Icon(
-                                                  Icons.calendar_today_outlined,
-                                                  size: 13,
-                                                  color: Colors.grey.shade600,
-                                                ),
 
                                                 const SizedBox(width: 4),
 
@@ -902,29 +547,12 @@ class _TelaCarrosState extends State<TelaCarros> {
                                               "R\$ ${carro.preco.toStringAsFixed(2)}",
 
                                               style: TextStyle(
-                                                color: corPrincipal,
+                                                color: Color(0xFF1565C0),
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
-                                        ),
-                                      ),
-
-                                      // SETA
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-
-                                          shape: BoxShape.circle,
-                                        ),
-
-                                        child: Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          size: 15,
-                                          color: Colors.grey.shade600,
                                         ),
                                       ),
                                     ],
@@ -937,35 +565,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                       ),
 
                     const SizedBox(height: 20),
-
-                    // DICA
-                    if (_carros.isNotEmpty)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-                          Icon(
-                            Icons.swipe_right_alt_rounded,
-                            size: 18,
-                            color: Colors.grey.shade500,
-                          ),
-
-                          const SizedBox(width: 6),
-
-                          Flexible(
-                            child: Text(
-                              "Deslize um carro para a direita para excluir",
-
-                              textAlign: TextAlign.center,
-
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
 
                     const SizedBox(height: 20),
                   ],
