@@ -59,18 +59,18 @@ class ListaCarroController {
   // }
 
   static Future<void> atualizarCarro(Carro car) async {
-    //busco lista persistida
+    // Busca a lista salva
     List<Carro> lista = await LocalStorageService.carregarCarros();
 
-    //buscando e removendo item da lista
-    int index = 0;
-    for (Carro c in lista) {
-      if (c.id == car.id) lista.removeAt(index);
-      index += 1;
-    }
-    lista.add(car);
+    // Procura o carro pelo ID
+    int index = lista.indexWhere((c) => c.id == car.id);
 
-    //salvando carro  na lista persistida
+    // Se encontrou, substitui pelos novos dados
+    if (index != -1) {
+      lista[index] = car;
+    }
+
+    // Salva a lista novamente
     await LocalStorageService.salvarCarros(lista);
   }
 

@@ -19,6 +19,11 @@ class _TelaCarrosState extends State<TelaCarros> {
   final TextEditingController tecMarca = TextEditingController();
   final TextEditingController tecAnoFabricacao = TextEditingController();
 
+  final TextEditingController tecNomeEditar = TextEditingController();
+  final TextEditingController tecPrecoEditar = TextEditingController();
+  final TextEditingController tecMarcaEditar = TextEditingController();
+  final TextEditingController tecAnoEditar = TextEditingController();
+
   List<Carro> _carros = [];
 
   @override
@@ -34,6 +39,12 @@ class _TelaCarrosState extends State<TelaCarros> {
     tecPreco.dispose();
     tecMarca.dispose();
     tecAnoFabricacao.dispose();
+
+    tecNomeEditar.dispose();
+    tecPrecoEditar.dispose();
+    tecMarcaEditar.dispose();
+    tecAnoEditar.dispose();
+
     super.dispose();
   }
 
@@ -82,10 +93,8 @@ class _TelaCarrosState extends State<TelaCarros> {
     try {
       await ListaCarroController.inserirCarro(id, nome, preco, marca, ano);
 
-      // Recarrega a lista para o novo carro aparecer na tela
       await carregarDados();
 
-      // Limpa os campos após o cadastro
       tecNome.clear();
       tecPreco.clear();
       tecMarca.clear();
@@ -97,18 +106,141 @@ class _TelaCarrosState extends State<TelaCarros> {
     }
   }
 
-  void deletarDado(int id) async {
+  Future<void> deletarDado(int id) async {
     try {
       await ListaCarroController.deletarCarro(id);
+
+      await carregarDados();
 
       mostrarMensagem("Carro removido com sucesso!");
     } catch (e) {
       mostrarMensagem("Erro ao remover carro.");
-
-      // Se der erro no backend, recarrega a lista pra desfazer a remoção visual
       await carregarDados();
     }
   }
+
+  // ============================================================
+  // EDITAR CARRO
+  // ============================================================
+
+  void editarCarro(Carro carro) {
+    tecNomeEditar.text = carro.nome;
+    tecPrecoEditar.text = carro.preco.toString();
+    tecMarcaEditar.text = carro.marca;
+    tecAnoEditar.text = carro.anoFabricacao.toString();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "Editar carro",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: tecMarcaEditar,
+                  decoration: const InputDecoration(labelText: "Marca"),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: tecNomeEditar,
+                  decoration: const InputDecoration(labelText: "Nome do carro"),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: tecAnoEditar,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Ano de fabricação",
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: tecPrecoEditar,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(labelText: "Preço"),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancelar"),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                final double? preco = double.tryParse(
+                  tecPrecoEditar.text.replaceAll(',', '.'),
+                );
+
+                final int? ano = int.tryParse(tecAnoEditar.text);
+
+                if (tecNomeEditar.text.trim().isEmpty ||
+                    tecMarcaEditar.text.trim().isEmpty ||
+                    preco == null ||
+                    ano == null) {
+                  mostrarMensagem("Preencha todos os campos corretamente.");
+                  return;
+                }
+
+                final carroAtualizado = Carro(
+                  id: carro.id,
+                  nome: tecNomeEditar.text.trim(),
+                  preco: preco,
+                  marca: tecMarcaEditar.text.trim(),
+                  anoFabricacao: ano,
+                );
+
+                try {
+                  await ListaCarroController.atualizarCarro(carroAtualizado);
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
+
+                  await carregarDados();
+
+                  tecNomeEditar.clear();
+                  tecPrecoEditar.clear();
+                  tecMarcaEditar.clear();
+                  tecAnoEditar.clear();
+
+                  mostrarMensagem("Carro atualizado com sucesso!");
+                } catch (e) {
+                  mostrarMensagem("Erro ao atualizar carro.");
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1565C0),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Salvar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // VISUALIZAR CARRO
+  // ============================================================
 
   void visualizarDado(Carro carro) {
     showDialog(
@@ -149,7 +281,7 @@ class _TelaCarrosState extends State<TelaCarros> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF1565C0),
+                      backgroundColor: const Color(0xFF1565C0),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -174,18 +306,15 @@ class _TelaCarrosState extends State<TelaCarros> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
-
       child: Row(
         children: [
           Text(
             "$titulo : ",
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-
           Flexible(
             child: Text(
               valor,
-
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -202,7 +331,6 @@ class _TelaCarrosState extends State<TelaCarros> {
         content: Row(
           children: [
             const SizedBox(width: 10),
-
             Expanded(child: Text(mensagem)),
           ],
         ),
@@ -219,13 +347,11 @@ class _TelaCarrosState extends State<TelaCarros> {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        backgroundColor: Color(0xFF0D47A1),
+        backgroundColor: const Color(0xFF0D47A1),
         foregroundColor: Colors.white,
-
         title: Row(
           children: [
             const SizedBox(width: 10),
-
             Text(
               widget.title,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
@@ -242,19 +368,19 @@ class _TelaCarrosState extends State<TelaCarros> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Card(
-                      shadowColor: Color.fromRGBO(0, 0, 0, 0.12),
+                    // ========================================================
+                    // CADASTRO
+                    // ========================================================
 
+                    Card(
+                      shadowColor: const Color.fromRGBO(0, 0, 0, 0.12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
                       ),
-
                       child: Padding(
                         padding: const EdgeInsets.all(20),
-
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-
                           children: [
                             Row(
                               children: [
@@ -320,9 +446,10 @@ class _TelaCarrosState extends State<TelaCarros> {
                             ),
 
                             const SizedBox(height: 14),
+
                             TextField(
                               controller: tecAnoFabricacao,
-                              keyboardType: TextInputType.text,
+                              keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 labelText: "Ano de fabricação",
@@ -334,11 +461,16 @@ class _TelaCarrosState extends State<TelaCarros> {
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 14),
+
                             TextField(
                               controller: tecPreco,
-                              keyboardType: TextInputType.text,
-                              textInputAction: TextInputAction.next,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
                                 labelText: "Preço",
                                 filled: true,
@@ -350,23 +482,21 @@ class _TelaCarrosState extends State<TelaCarros> {
                               ),
                             ),
 
+                            const SizedBox(height: 14),
+
                             Row(
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: inserirDado,
-
+                                    icon: const Icon(Icons.add),
                                     label: const Text("Cadastrar carro"),
-
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF1565C0),
-
+                                      backgroundColor: const Color(0xFF1565C0),
                                       foregroundColor: Colors.white,
-
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 16,
                                       ),
-
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(14),
                                       ),
@@ -384,6 +514,9 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                     const SizedBox(height: 24),
 
+                    // ========================================================
+                    // TÍTULO
+                    // ========================================================
                     Row(
                       children: [
                         const Text(
@@ -398,11 +531,14 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                     const SizedBox(height: 12),
 
+                    // ========================================================
+                    // LISTA DE CARROS
+                    // ========================================================
                     if (_carros.isEmpty)
                       Container(
-                        child: Column(
+                        child: const Column(
                           children: [
-                            const Text(
+                            Text(
                               "Nenhum carro cadastrado",
                               style: TextStyle(
                                 fontSize: 17,
@@ -422,31 +558,26 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                           return Dismissible(
                             key: Key(carro.id.toString()),
-
                             direction: DismissDirection.startToEnd,
 
                             onDismissed: (direction) {
                               setState(() {
                                 _carros.removeAt(index);
                               });
+
                               deletarDado(carro.id);
                             },
 
                             background: Container(
                               margin: const EdgeInsets.only(bottom: 10),
-
                               decoration: BoxDecoration(
                                 color: Colors.red,
-
                                 borderRadius: BorderRadius.circular(18),
                               ),
-
                               alignment: Alignment.centerLeft,
-
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 25,
                               ),
-
                               child: const Row(
                                 children: [
                                   Icon(
@@ -470,11 +601,8 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                             child: Card(
                               elevation: 2,
-
-                              shadowColor: Color.fromRGBO(0, 0, 0, 0.08),
-
+                              shadowColor: const Color.fromRGBO(0, 0, 0, 0.08),
                               margin: const EdgeInsets.only(bottom: 10),
-
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(18),
                               ),
@@ -495,11 +623,9 @@ class _TelaCarrosState extends State<TelaCarros> {
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
-
                                           children: [
                                             Text(
                                               carro.nome,
-
                                               style: const TextStyle(
                                                 fontSize: 17,
                                                 fontWeight: FontWeight.bold,
@@ -513,10 +639,8 @@ class _TelaCarrosState extends State<TelaCarros> {
                                                 Flexible(
                                                   child: Text(
                                                     carro.marca,
-
                                                     overflow:
                                                         TextOverflow.ellipsis,
-
                                                     style: TextStyle(
                                                       color:
                                                           Colors.grey.shade600,
@@ -532,7 +656,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                                                 Text(
                                                   carro.anoFabricacao
                                                       .toString(),
-
                                                   style: TextStyle(
                                                     color: Colors.grey.shade600,
                                                     fontSize: 13,
@@ -545,8 +668,7 @@ class _TelaCarrosState extends State<TelaCarros> {
 
                                             Text(
                                               "R\$ ${carro.preco.toStringAsFixed(2)}",
-
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: Color(0xFF1565C0),
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -554,6 +676,34 @@ class _TelaCarrosState extends State<TelaCarros> {
                                             ),
                                           ],
                                         ),
+                                      ),
+
+                                      // ==================================================
+                                      // 3 PONTINHOS
+                                      // ==================================================
+                                      PopupMenuButton<String>(
+                                        icon: const Icon(Icons.more_vert),
+
+                                        onSelected: (value) {
+                                          if (value == "editar") {
+                                            editarCarro(carro);
+                                          }
+                                        },
+
+                                        itemBuilder: (context) {
+                                          return [
+                                            const PopupMenuItem(
+                                              value: "editar",
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit_outlined),
+                                                  SizedBox(width: 8),
+                                                  Text("Editar"),
+                                                ],
+                                              ),
+                                            ),
+                                          ];
+                                        },
                                       ),
                                     ],
                                   ),
@@ -563,8 +713,6 @@ class _TelaCarrosState extends State<TelaCarros> {
                           );
                         },
                       ),
-
-                    const SizedBox(height: 20),
 
                     const SizedBox(height: 20),
                   ],
