@@ -33,30 +33,11 @@ class ListaCarroController {
   static Future<void> deletarCarro(int id) async {
     //busco lista persistida
     List<Carro> lista = await LocalStorageService.carregarCarros();
-    //buscando e removendo item da lista
-    for (Carro c in lista) if (c.id == id) lista.remove(c);
+    //removendo item da lista com o id correspondente
+    lista.removeWhere((c) => c.id == id);
     //salvando carro na lista persistida
     await LocalStorageService.salvarCarros(lista);
   }
-
-  // static Future<void> favoritar(Carro car) async {
-  //   late Carro carFavorito;
-  //   if (car.favorito)
-  //     carFavorito = new Carro(
-  //       id: car.id,
-  //       nome: car.nome,
-  //       preco: car.preco,
-  //       favorito: false,
-  //     );
-  //   else
-  //     carFavorito = new Carro(
-  //       id: car.id,
-  //       nome: car.nome,
-  //       preco: car.preco,
-  //       favorito: true,
-  //     );
-  //   await atualizarCarro(carFavorito);
-  // }
 
   static Future<void> atualizarCarro(Carro car) async {
     // Busca a lista salva

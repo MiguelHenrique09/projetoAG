@@ -8,23 +8,6 @@ class LocalStorageService {
   static const String LISTA_CARROS = 'lista_carros';
   // static const String AUTORIZACAO = 'autorizacao';
 
-  // // Salvar a lista
-  // static Future<void> salvarAutorizacao(Auth auth) async {
-  //   //instancia a classe sp
-  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   //converte a lista de produtos em string
-  //   final String encodedData = json.encode(auth.toMap());
-  //   //Persiste o dadop
-  //   await prefs.setString(AUTORIZACAO, encodedData);
-  // }
-
-  // // Salvar a lista
-  // static Future<void> desgravarAutorizacao() async {
-  //   //instancia a classe sp
-  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.remove(AUTORIZACAO);
-  // }
-
   // Salvar a lista
   static Future<void> salvarCarros(List<Carro> lista) async {
     //instancia a classe sp
